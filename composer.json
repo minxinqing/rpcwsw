@@ -1,5 +1,5 @@
 {
-    "name":"minxinqing/rpc-with-swoole",
+    "name":"minxinqing/rpcwsw",
     "require":{
         "ext-swoole": "~1.8"
     },
