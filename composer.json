@@ -1,0 +1,11 @@
+{
+    "name":"minxinqing/rpc-with-swoole",
+    "require":{
+        "ext-swoole": "~1.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rpc\\": "src/Rpc"
+        },
+    }
+}
