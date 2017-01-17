@@ -15,18 +15,28 @@ class Server extends Command{
 
     public function handle(){
         $opt = $this->arguments('opt');
-        if (in_array($opt, ['start', 'stop', 'reload', 'restart'])) {
-
+        switch ($opt) {
+            case 'start':
+                $this->start();
+                break;
+            case 'shutdown':
+                $this->shutdown();
+                break;
+            case 'reload':
+                $this->reload();
+                break;
+            case 'restart':
+                $this->shutdown();
+                $this->start();
+                break;
+            
+            default:
+                $this->error('错误的指令：'.$opt);
+                break;
         }
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function start()
-    {
+    private function instance() {
         $host = config('rpcwsw.server.host', '0.0.0.0');
         $port = config('rpcwsw.server.port', '9527');
 
@@ -96,7 +106,7 @@ class Server extends Command{
             Log::error('RPCSWS_ERROR', ['type' => 'worker error', 'data' => [$worker_id, $worker_pid, $exit_code]]);
         }
 
-        $serv->start();
+        return $serv;
     }
 
     public function process($api, $params, $method = 'GET') {
@@ -116,5 +126,20 @@ class Server extends Command{
         Log::error('RPCSWS_ERROR', ['type' => 'rpc error', 'data' => $v]);
         return json_encode(['code' => 101, 'msg' => '系统错误', 'data' => []]);
         
+    }
+
+    public function start()
+    {
+        $this->instance()->start();
+    }
+
+    public function shutdown()
+    {
+        $this->instance()->shutdown();
+    }
+
+    public function reload()
+    {
+        $this->instance()->reload();
     }
 }
