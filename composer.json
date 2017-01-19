@@ -11,5 +11,10 @@
         "files": [
             "src/Rpcwsw/helpers.php"
         ]
+    },
+    "archive":{
+        "exclude": [
+            "test"
+        ]
     }
 }
