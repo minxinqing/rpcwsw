@@ -3,30 +3,30 @@ namespace Rpcwsw;
 
 class Client{
 
-    private static $client;
+    private static $clientList;
 
-    private static function init(){
-        $host = config('rpcwsw.server.host', '');
-        if (!$host) {
-            throw new Exception\ClientException("rpcws.server.host is not set");
-        }
+    private $client;
 
-        $port = config('rpcwsw.server.port');
-        if (!$port) {
-            throw new Exception\ClientException("rpcws.server.port is not set");
-        }
+    public function __construct($serverName) {
+        $host = config('rpcwsw.instance.'.$serverName.'.host', '0.0.0.0');
 
-        $client = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP);
-        if (!$client->connect($host, $port))
+        $port = config('rpcwsw.instance.'.$serverName.'.port', 9527);
+
+        $swClient = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP);
+
+        if (!$swClient->connect($host, $port))
         {
-            Log::error('RPCSWS_ERROR', ['type' => 'connect error', 'code' => $client->errCode]);
+            Log::error('RPCSWS_ERROR', ['type' => 'connect error', 'code' => $swClient->errCode]);
         }
 
-        self::$client = $client;
+        $this->client = $swClient;
     }
 
-    public static function api($uri, $params, $method = 'GET', $sync = true) {
-        self::init();
+    public static function instance($serverName){
+        return new self($serverName);
+    }
+
+    public function api($uri, $params, $method = 'GET', $sync = true) {
 
         $data = [
             'api' => $uri,
@@ -34,8 +34,8 @@ class Client{
             'method' => $method,
             'sync' => $sync
         ];
-        self::$client->send(json_encode($data));
-        $response = self::$client->recv();
+        $this->client->send(json_encode($data));
+        $response = $this->client->recv();
         if ($response) {
             $response = json_decode($response, true);
         }

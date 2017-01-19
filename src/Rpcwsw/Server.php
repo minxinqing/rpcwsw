@@ -13,8 +13,28 @@ class Server extends Command{
 
     protected $description = 'rpcwsw启动文件';
 
+    protected $pidFile;
+    protected $logFile;
+    protected $serverPid;
+
+    public function __construct() {
+        $this->pidFile = config('rpcwsw.server.pid_file');
+        if (!$this->pidFile) {
+            throw new Exception\ServerException("请设置主进程ID文件路径");
+        }
+
+        $this->serverPid = file_get_contents($this->pidFile);
+
+        $this->logFile = config('rpcwsw.server.log_file');
+        if (!$this->logFile) {
+            throw new Exception\ServerException("请设置路径文件路径");
+        }
+
+        parent::__construct();
+    }
+
     public function handle(){
-        $opt = $this->arguments('opt');
+        $opt = $this->argument('opt');
         switch ($opt) {
             case 'start':
                 $this->start();
@@ -25,18 +45,39 @@ class Server extends Command{
             case 'reload':
                 $this->reload();
                 break;
-            case 'restart':
-                $this->shutdown();
-                $this->start();
-                break;
-            
             default:
                 $this->error('错误的指令：'.$opt);
                 break;
         }
     }
 
-    private function instance() {
+    public function process($api, $params, $method = 'GET') {
+        $request = Request::create($api, $method, $params);
+        $v = app()['Illuminate\Contracts\Http\Kernel']->handle($request);
+        $statusCode = $v->getStatusCode();
+        if ($statusCode == 200) {
+            return $v->getContent();
+        } elseif ($statusCode == 405) {
+            return json_encode([
+                'code' => 102,
+                'message' => '请求方法错误',
+                'data' => [],
+            ]);
+        }
+
+        Log::error('RPCSWS_ERROR', ['type' => 'rpc error', 'data' => $v]);
+        return json_encode(['code' => 101, 'msg' => '系统错误', 'data' => []]);
+        
+    }
+
+    public function start()
+    {
+        if (!empty($this->serverPid) and posix_kill($this->serverPid, 0))
+        {
+            $this->info("服务已经存在");
+            exit;
+        }
+
         $host = config('rpcwsw.server.host', '0.0.0.0');
         $port = config('rpcwsw.server.port', '9527');
 
@@ -50,13 +91,13 @@ class Server extends Command{
             'backlog' => config('rpcwsw.server.backlog', 128),   //Listen队列长度
             'daemonize' => config('rpcwsw.server.daemonize', 1), //是否作为守护进程
             
-            'max_conn' => config('rpcwsw.server.max_conn', 10000), //最大连接数
+            'max_conn' => config('rpcwsw.server.max_conn', 1000), //最大连接数
 
             'open_cpu_affinity' => config('rpcwsw.server.open_cpu_affinity', 1), //是否CPU亲和
             'open_tcp_nodelay' => config('rpcwsw.server.open_tcp_nodelay', 1), //是否启用tcp_nodelay
 
             'tcp_defer_accept' => config('rpcwsw.server.tcp_defer_accept', 5), //是否启用tcp_nodelay
-            'log_file' => storage_path().'/log/swoole-server.log',
+            'log_file' => $this->logFile,
 
             'heartbeat_check_interval' => config('rpcwsw.server.heartbeat_check_interval', 10),
             'heartbeat_idle_time' => config('rpcwsw.server.heartbeat_idle_time', 20),
@@ -65,8 +106,21 @@ class Server extends Command{
 
             'open_eof_check' => true, //打开EOF检测
             'package_eof' => "\r\n", //设置EOF
-
         ));
+
+        $serv->on('start', function($serv){
+            $this->setProcessName('swoole master');
+            file_put_contents($this->pidFile, $serv->master_pid);
+        });
+
+        $serv->on('managerStart', function ($serv){
+            $this->setProcessName('swoole manager');
+        });
+
+        $serv->on('workerStart', function ($serv, $fd){
+            $this->setProcessName('swoole worker');
+        });
+
         $serv->on('connect', function ($serv, $fd){
             
             // Log::info("fd:".$fd.". Client:Connect.");
@@ -102,44 +156,48 @@ class Server extends Command{
             // Log::info("fd:".$fd.".  Client: Close.");
         });
 
-        $serv->on('workerError', function($serv, $worker_id, $worker_pid, $exit_code)) {
+        $serv->on('workerError', function($serv, $worker_id, $worker_pid, $exit_code) {
             Log::error('RPCSWS_ERROR', ['type' => 'worker error', 'data' => [$worker_id, $worker_pid, $exit_code]]);
-        }
+        });
 
-        return $serv;
-    }
-
-    public function process($api, $params, $method = 'GET') {
-        $request = Request::create($api, $method, $params);
-        $v = app()['Illuminate\Contracts\Http\Kernel']->handle($request);
-        $statusCode = $v->getStatusCode();
-        if ($statusCode == 200) {
-            return $v->getContent();
-        } elseif ($statusCode == 405) {
-            return json_encode([
-                'code' => 102,
-                'message' => '请求方法错误',
-                'data' => [],
-            ]);
-        }
-
-        Log::error('RPCSWS_ERROR', ['type' => 'rpc error', 'data' => $v]);
-        return json_encode(['code' => 101, 'msg' => '系统错误', 'data' => []]);
-        
-    }
-
-    public function start()
-    {
-        $this->instance()->start();
+        $serv->start();
+        $this->info('服务启动成功');
     }
 
     public function shutdown()
     {
-        $this->instance()->shutdown();
+        if(posix_kill($this->serverPid, SIGTERM)){
+            $this->info('shutdown success');
+        } else {
+            $this->error('shutdown failed');
+        }
     }
 
     public function reload()
     {
-        $this->instance()->reload();
+        if (posix_kill($this->serverPid, SIGUSR1)) {
+            $this->info('reload success');
+        } else {
+            $this->error('reload failed');
+        }
+    }
+
+    private function setProcessName($name)
+    {
+        if (function_exists('cli_set_process_title'))
+        {
+            @cli_set_process_title($name);
+        }
+        else
+        {
+            if (function_exists('swoole_set_process_name'))
+            {
+                @swoole_set_process_name($name);
+            }
+            else
+            {
+                trigger_error(__METHOD__ . " failed. require cli_set_process_title or swoole_set_process_name.");
+            }
+        }
     }
 }
