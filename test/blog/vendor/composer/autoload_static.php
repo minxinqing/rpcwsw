@@ -17,6 +17,7 @@ class ComposerStaticInit21042fbb35ca70a352a501059ad17f06
         '65fec9ebcfbb3cbb4fd0d519687aea01' => __DIR__ . '/..' . '/danielstjules/stringy/src/Create.php',
         'f0906e6318348a765ffb6eb24e0d0938' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/helpers.php',
         '58571171fd5812e6e447dce228f52f4d' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Support/helpers.php',
+        '8e308bf197974016c43a4a72a9bee6b1' => __DIR__ . '/../..' . '/../../src/Rpcwsw/Helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -183,7 +184,8 @@ class ComposerStaticInit21042fbb35ca70a352a501059ad17f06
         ),
         'Rpcwsw\\' => 
         array (
-            0 => __DIR__ . '/..' . '/minxinqing/rpcwsw/src/Rpcwsw',
+            0 => __DIR__ . '/../..' . '/../../src/Rpcwsw',
+            1 => __DIR__ . '/..' . '/minxinqing/rpcwsw/src/Rpcwsw',
         ),
         'Psy\\' => 
         array (

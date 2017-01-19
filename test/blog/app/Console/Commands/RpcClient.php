@@ -39,14 +39,11 @@ class RpcClient extends Command
      */
     public function handle()
     {
-        if ($a) {
-            echo 'aaa';
-        }
-
-        exit;
-        $rs = Rpc::api('math/add', ['num1' => 3,'num2' =>3], 'GET');
-        sleep(10);
-        dd($rs);
+        
+        $rs = \rpcwsw('serviceA')->api('math/mult', ['num1' => 3,'num2' =>3], 'GET');
+        print_r($rs);
+        $rs = \rpcwsw('serviceA')->api('math/add', ['num1' => 3,'num2' =>4], 'GET');
+        print_r($rs);
     }
 
 }

@@ -27,7 +27,7 @@ return array(
     'Symfony\\Component\\Console\\' => array($vendorDir . '/symfony/console'),
     'SuperClosure\\' => array($vendorDir . '/jeremeamia/SuperClosure/src'),
     'Stringy\\' => array($vendorDir . '/danielstjules/stringy/src'),
-    'Rpcwsw\\' => array($vendorDir . '/minxinqing/rpcwsw/src/Rpcwsw'),
+    'Rpcwsw\\' => array($baseDir . '/../../src/Rpcwsw', $vendorDir . '/minxinqing/rpcwsw/src/Rpcwsw'),
     'Psy\\' => array($vendorDir . '/psy/psysh/src/Psy'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'PhpParser\\' => array($vendorDir . '/nikic/php-parser/lib/PhpParser'),

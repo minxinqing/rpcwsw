@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\Inspire::class,
         Commands\RpcClient::class,
-        // Rpcwsw\Server::class,
+        \Rpcwsw\Server::class,
     ];
 
     /**

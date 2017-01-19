@@ -22,8 +22,10 @@ class MathController extends Controller
 
         $data = app('request')->only(array_keys($rules));
         $validator = app('validator')->make($data, $rules);
-        Rpc::api('math/mult', $data, 'GET');
-return  Rpc::api('math/mult', $data, 'GET');
+
+        return \Rpcwsw\Client::instance('serviceB')
+            ->api('math/mult', ['num1' => $data['num1'],'num2' => $data['num2']], 'GET');
+
         if ($validator->fails()) {
             return [
                 'code' => 103,
@@ -48,9 +50,7 @@ return  Rpc::api('math/mult', $data, 'GET');
     {
         $rules['num1'] = ['required', 'integer'];
         $rules['num2'] = ['required', 'integer'];
-if ($a) {
-    echo 'xxx';
-}
+
         $data = app('request')->only(array_keys($rules));
         $validator = app('validator')->make($data, $rules);
 
