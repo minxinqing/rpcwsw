@@ -14,7 +14,7 @@
     },
     "archive":{
         "exclude": [
-            "/test/"
+            "/tests"
         ]
     }
 }
