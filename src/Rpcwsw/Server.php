@@ -20,14 +20,14 @@ class Server extends Command{
     public function __construct() {
         $this->pidFile = config('rpcwsw.server.pid_file');
         if (!$this->pidFile) {
-            throw new Exception\ServerException("请设置主进程ID文件路径");
+            throw new Exception\ServerException("请设置主进程ID文件路径参数 pid_file");
         }
 
-        $this->serverPid = file_get_contents($this->pidFile);
+        $this->serverPid = is_file($this->pidFile) ? file_get_contents($this->pidFile) : 0;
 
         $this->logFile = config('rpcwsw.server.log_file');
         if (!$this->logFile) {
-            throw new Exception\ServerException("请设置路径文件路径");
+            throw new Exception\ServerException("请设置日志文件路径参数 log_file");
         }
 
         parent::__construct();
