@@ -2,6 +2,7 @@
 基于swoole扩展的rpc组件，能够轻松把restful接口转变成rpc服务。
 
 ## 依赖
+swoole2.07 +
 laravel5.1 +
 
 ## 安装
