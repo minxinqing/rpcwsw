@@ -2,7 +2,7 @@
     "name":"minxinqing/rpcwsw",
     "description":"作用于laravel的rpc组件，可以直接把restful接口转换成rpc接口",
     "require":{
-        "ext-swoole": "~1.8"
+        "ext-swoole": ">=1.8"
     },
     "autoload": {
         "psr-4": {

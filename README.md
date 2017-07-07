@@ -2,8 +2,8 @@
 基于swoole扩展的rpc组件，能够轻松把laravel http接口转变成rpc服务。
 
 ## 依赖
-swoole2.07 +  
-laravel5.1 +
+swoole 1.8 +  
+laravel 5.1 +
 
 ## 安装
 1. composer.json添加源（还未发布packagist，需要手动添加源）
