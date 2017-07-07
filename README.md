@@ -24,7 +24,7 @@ composer require minxinqing/rpcwsw
 ## 使用
 
 ### 服务端
-1. 服务端编写好restful接口，如已写好GET接口 /news/list
+1. 服务端编写好http接口，如已写好GET接口 /news/list
 
 2. 增加config\rpcwsw.php配置文件
     ```php
