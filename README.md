@@ -1,5 +1,5 @@
 ## rpcwsw
-基于swoole扩展的rpc组件，能够轻松把restful接口转变成rpc服务。
+基于swoole扩展的rpc组件，能够轻松把laravel http接口转变成rpc服务。
 
 ## 依赖
 swoole2.07 +  
