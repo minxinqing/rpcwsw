@@ -1,5 +1,6 @@
 <?php
+namespace Rpcwsw;
 
-function rpcwsw($serverName) {
+function server($serverName) {
     return \Rpcwsw\Client::instance($serverName);
 }

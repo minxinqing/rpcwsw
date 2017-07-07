@@ -7,23 +7,34 @@ class Client{
 
     private $client;
 
-    public function __construct($serverName) {
-        $host = config('rpcwsw.instance.'.$serverName.'.host', '0.0.0.0');
+    public function __construct($serverName, $config) {
+        if (!$config[$serverName]['host']) {
+            throw new Exception($serverName . ' 的host配置不存在');
+        }
+        $host = $config[$serverName]['host'];
 
-        $port = config('rpcwsw.instance.'.$serverName.'.port', 9527);
+        if (!$config[$serverName]['port']) {
+            throw new Exception($serverName . ' 的port配置不存在');
+        }
+        $port = $config[$serverName]['port'];
 
-        $swClient = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP);
+        $swClient = new \Swoole\Client(SWOOLE_SOCK_TCP | SWOOLE_KEEP);
 
-        if (!$swClient->connect($host, $port))
-        {
-            Log::error('RPCSWS_ERROR', ['type' => 'connect error', 'code' => $swClient->errCode]);
+        if (!$swClient->connect($host, $port, 10)) {
+            throw new Exception('服务连接失败，code:'.$swClient->errCode);
         }
 
         $this->client = $swClient;
     }
 
-    public static function instance($serverName){
-        return new self($serverName);
+    public static function instance($serverName, $config = []){
+        if (!self::$clientList[$serverName]) {
+            !$config && $config = config('rpcwsw.instance');
+            echo 'new client',"\r\n";
+            self::$clientList[$serverName] = new self($serverName, $config);
+        }
+        
+        return self::$clientList[$serverName];
     }
 
     public function api($uri, $params, $method = 'GET', $sync = true) {
@@ -34,8 +45,14 @@ class Client{
             'method' => $method,
             'sync' => $sync
         ];
-        $this->client->send(json_encode($data));
-        $response = $this->client->recv();
+        try{
+            $this->client->send(gzcompress(json_encode($data)));
+        
+            $response = $this->client->recv();
+        } catch(\Exception $ex) {
+            $response = ['code' => 100101, 'msg' => '未知错误', 'data' => []];
+        }
+        
         if ($response) {
             $response = json_decode($response, true);
         }

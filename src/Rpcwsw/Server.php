@@ -52,6 +52,7 @@ class Server extends Command{
     }
 
     public function process($api, $params, $method = 'GET') {
+
         $request = Request::create($api, $method, $params);
         $v = app()['Illuminate\Contracts\Http\Kernel']->handle($request);
         $statusCode = $v->getStatusCode();
@@ -59,14 +60,21 @@ class Server extends Command{
             return $v->getContent();
         } elseif ($statusCode == 405) {
             return json_encode([
-                'code' => 102,
+                'code' => 100102,
                 'message' => '请求方法错误',
+                'data' => [],
+            ]);
+        } elseif ($statusCode == 404) {
+            return json_encode([
+                'code' => 100103,
+                'message' => '服务不存在',
                 'data' => [],
             ]);
         }
 
-        Log::error('RPCSWS_ERROR', ['type' => 'rpc error', 'data' => $v]);
-        return json_encode(['code' => 101, 'msg' => '系统错误', 'data' => []]);
+        Log::error('rpcsws error', ['type' => 'rpcsws_error', 'data' => $v]);
+        
+        return json_encode(['code' => 100101, 'msg' => '未知错误', 'data' => $v]);
         
     }
 
@@ -104,31 +112,37 @@ class Server extends Command{
 
             'dispatch_mode' => 3,
 
-            'open_eof_check' => true, //打开EOF检测
-            'package_eof' => "\r\n", //设置EOF
+            // 'open_eof_check' => true, //打开EOF检测
+            // 'package_eof' => "\r\n", //设置EOF
         ));
 
         $serv->on('start', function($serv){
+            Log::debug("on start.");
             $this->setProcessName('swoole master');
             file_put_contents($this->pidFile, $serv->master_pid);
         });
 
         $serv->on('managerStart', function ($serv){
+            Log::debug("on managerStart.");
             $this->setProcessName('swoole manager');
         });
 
         $serv->on('workerStart', function ($serv, $fd){
+            Log::debug('on workerStart.', ['fd' => $fd]);
             $this->setProcessName('swoole worker');
         });
 
         $serv->on('connect', function ($serv, $fd){
-            
-            // Log::info("fd:".$fd.". Client:Connect.");
+            Log::debug('on connect.', ['fd' => $fd]);
         });
 
         $serv->on('receive', function ($serv, $fd, $from_id, $data) {
-            // Log::info('work.fd:'.$fd.';from_id:'.$from_id.". receive data:", $data);
-            $data = json_decode($data, true);
+            $data = json_decode(gzuncompress($data), true);
+            Log::debug('on receive.', [
+                'work_fd' =>$fd,
+                'from_id' => $from_id,
+                'receive_data' =>$data
+            ]);
 
             $result = ['code' => 0, 'message' => '', 'data' => []];
             if ($data['sync']) {
@@ -137,31 +151,36 @@ class Server extends Command{
                 $result = json_encode($result);
                 $serv->task($data);
             }
-            
+
             $serv->send($fd, $result);
         });
 
         $serv->on('task', function ($serv, $task_id, $from_id, $data) {
+            Log::debug('on task', [
+                'task_id' => $task_id,
+                'from_id' => $from_id,
+                'task_data' => $data
+            ]);
             $result = $this->process($data['api'], $data['params'], $data['method']);
             $serv->finish($result);
         });
 
         //处理异步任务的结果
         $serv->on('finish', function ($serv, $task_id, $data) {
-            // Log::info('task finish:'.$data);
+            Log::debug('on finish', [
+                'task_id' => $task_id,
+                'task_data' => $data
+            ]);
         });
 
 
         $serv->on('close', function ($serv, $fd) {
-            // Log::info("fd:".$fd.".  Client: Close.");
-        });
-
-        $serv->on('workerError', function($serv, $worker_id, $worker_pid, $exit_code) {
-            Log::error('RPCSWS_ERROR', ['type' => 'worker error', 'data' => [$worker_id, $worker_pid, $exit_code]]);
+            Log::debug('on close', [
+                'fd' => $fd
+            ]);
         });
 
         $serv->start();
-        $this->info('服务启动成功');
     }
 
     public function shutdown()

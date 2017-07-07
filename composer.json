@@ -9,7 +9,7 @@
             "Rpcwsw\\": "src/Rpcwsw"
         },
         "files": [
-            "src/Rpcwsw/helpers.php"
+            "src/Rpcwsw/Helpers.php"
         ]
     },
     "archive":{
