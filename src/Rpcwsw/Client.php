@@ -49,12 +49,11 @@ class Client{
             $this->client->send(gzcompress(json_encode($data)));
         
             $response = $this->client->recv();
+            if ($response) {
+                $response = json_decode($response, true);
+            }
         } catch(\Exception $ex) {
             $response = ['code' => 100101, 'msg' => '未知错误', 'data' => []];
-        }
-        
-        if ($response) {
-            $response = json_decode($response, true);
         }
         
         return $response;
