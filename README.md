@@ -37,7 +37,7 @@ composer require minxinqing/rpcwsw
             'log_file' => storage_path('logs/swoole_log'),
             'daemonize' => 1,
             'worker_num' => 10,
-            'task_worker_num' => 0,
+            'task_worker_num' => 10,
         ]
     ];
     ```  
