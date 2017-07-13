@@ -6,17 +6,6 @@ swoole 1.8 +
 laravel 5.1 +
 
 ## 安装
-1. composer.json添加源（还未发布packagist，需要手动添加源）
-```php
-"repositories": [
-    {
-        "type": "git",
-        "url": "https://github.com/minxinqing/rpcwsw.git"
-    }
-]
-```
-
-2. 安装 package
 ```php
 composer require minxinqing/rpcwsw
 ```
