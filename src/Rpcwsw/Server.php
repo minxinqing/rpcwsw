@@ -72,7 +72,7 @@ class Server extends Command{
             ]);
         }
 
-        Log::error('rpcsws error', ['type' => 'rpcsws_error', 'data' => $v]);
+        Log::error('rpcsws error', ['type' => 'rpcsws_error', 'data' => []]);
         
         return json_encode(['code' => 100101, 'msg' => '未知错误', 'data' => []]);
         
