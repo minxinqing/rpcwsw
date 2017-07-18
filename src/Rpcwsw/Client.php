@@ -30,7 +30,6 @@ class Client{
     public static function instance($serverName, $config = []){
         if (!self::$clientList[$serverName]) {
             !$config && $config = config('rpcwsw.instance');
-            echo 'new client',"\r\n";
             self::$clientList[$serverName] = new self($serverName, $config);
         }
         
