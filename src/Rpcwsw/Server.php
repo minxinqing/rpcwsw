@@ -159,10 +159,10 @@ class Server extends Command{
             Log::debug('on task', [
                 'task_id' => $task_id,
                 'from_id' => $from_id,
-                'task_data' => $data
+                'task_data' => $data,
             ]);
             $result = $this->process($data['api'], $data['params'], $data['method']);
-            $serv->finish($result);
+            $serv->finish(json_decode($result, true));
         });
 
         //处理异步任务的结果
