@@ -171,6 +171,10 @@ class Server extends Command{
                 'task_id' => $task_id,
                 'task_data' => $data
             ]);
+
+            if ($data['code'] != 0){
+                Log::error('task error', $data);
+            }
         });
 
 
