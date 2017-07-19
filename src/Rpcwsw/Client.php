@@ -9,19 +9,19 @@ class Client{
 
     public function __construct($serverName, $config) {
         if (!$config[$serverName]['host']) {
-            throw new Exception($serverName . ' 的host配置不存在');
+            throw new \Exception($serverName . ' 的host配置不存在');
         }
         $host = $config[$serverName]['host'];
 
         if (!$config[$serverName]['port']) {
-            throw new Exception($serverName . ' 的port配置不存在');
+            throw new \Exception($serverName . ' 的port配置不存在');
         }
         $port = $config[$serverName]['port'];
 
         $swClient = new \Swoole\Client(SWOOLE_SOCK_TCP | SWOOLE_KEEP);
 
         if (!$swClient->connect($host, $port, 10)) {
-            throw new Exception('服务连接失败，code:'.$swClient->errCode);
+            throw new \Exception('服务连接失败，code:'.$swClient->errCode);
         }
 
         $this->client = $swClient;
