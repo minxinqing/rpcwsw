@@ -129,9 +129,6 @@ class Server extends Command{
 
         $serv->on('workerStart', function ($serv, $fd){
             Log::debug('on workerStart.', ['fd' => $fd]);
-            // app()->make(\Illuminate\Foundation\Bootstrap\LoadConfiguration::class)->bootstrap(app());
-            // app()->make(\Illuminate\Foundation\Support\Providers\RouteServiceProvider::class)->bootstrap(app());
-
             $this->setProcessName('swoole worker');
         });
 
@@ -147,21 +144,14 @@ class Server extends Command{
                 'receive_data' =>$data
             ]);
 
-            if (!$data || !isset($data['api']) OR !isset($data['params'])) {
-                $result = [
-                    'code' => 100103,
-                    'message' => '服务不存在',
-                    'data' => [],
-                ];
+            $result = ['code' => 0, 'message' => '', 'data' => []];
+            if ($data['sync']) {
+                $result = $this->process($data['api'], $data['params'], $data['method']);
             } else {
-                $result = ['code' => 0, 'message' => '', 'data' => []];
-                if ($data['sync']) {
-                    $result = $this->process($data['api'], $data['params'], $data['method']);
-                } else {
-                    $result = json_encode($result);
-                    $serv->task($data);
-                }
+                $result = json_encode($result);
+                $serv->task($data);
             }
+
             $serv->send($fd, $result);
         });
 
