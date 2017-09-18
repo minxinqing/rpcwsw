@@ -51,6 +51,7 @@ class Client{
 
             $response = '';
 
+            // 重复拉取返回数组，直至检测到结束符（swoole貌似有bug，open_eof_check不生效）
             while(true) {
                 $response .= $this->client->recv();
 
