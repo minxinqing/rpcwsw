@@ -44,10 +44,23 @@ class Client{
             'method' => $method,
             'sync' => $sync
         ];
+
         try{
-            $this->client->send(gzcompress(json_encode($data)));
-        
-            $response = $this->client->recv();
+            $sendStr = gzcompress(json_encode($data));
+            $this->client->send($sendStr."\r\n\r\n");
+
+            $response = '';
+
+            while(true) {
+                $response .= $this->client->recv();
+
+                if (substr($response, -4) == "\r\n\r\n") {
+                    $response = substr($response, 0, strlen($response) - 4);
+                    $response = gzuncompress($response);
+                    break;
+                }
+            }
+
             if ($response) {
                 $response = json_decode($response, true);
             }

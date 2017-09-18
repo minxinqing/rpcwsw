@@ -112,8 +112,8 @@ class Server extends Command{
 
             'dispatch_mode' => 3,
 
-            // 'open_eof_check' => true, //打开EOF检测
-            // 'package_eof' => "\r\n", //设置EOF
+            'package_eof' => "\r\n\r\n",
+            'open_eof_check' => true,
         ));
 
         $serv->on('start', function($serv){
@@ -137,7 +137,9 @@ class Server extends Command{
         });
 
         $serv->on('receive', function ($serv, $fd, $from_id, $data) {
-            $data = json_decode(gzuncompress($data), true);
+            $data = gzuncompress($data);
+            $data = json_decode($data, true);
+
             Log::debug('on receive.', [
                 'work_fd' =>$fd,
                 'from_id' => $from_id,
@@ -152,7 +154,7 @@ class Server extends Command{
                 $serv->task($data);
             }
 
-            $serv->send($fd, $result);
+            $serv->send($fd, gzcompress($result)."\r\n\r\n");
         });
 
         $serv->on('task', function ($serv, $task_id, $from_id, $data) {
