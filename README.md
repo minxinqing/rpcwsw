@@ -1,3 +1,5 @@
+#已放弃，如果把laravel框架作为常驻内存模式使用，内存溢出严重
+
 ## rpcwsw
 基于swoole扩展的rpc组件，能够轻松把laravel http接口转变成rpc服务。
 
